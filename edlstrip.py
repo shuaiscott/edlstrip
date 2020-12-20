@@ -4,12 +4,6 @@ import tempfile
 import click
 
 ## 
-# Constants
-##
-
-
-
-## 
 # Helper functions
 ##
 def parse_args(args):
@@ -152,18 +146,18 @@ if __name__ == '__main__':
         click.confirm('WARNING!!! Copy vcodec was selected. This provides a faster split, but is not as accurate. (You can disable this prompt with --confirm-copy)\nDo you want to continue?', abort=True)
 
     # Parse EDL file
-    edl_list = parse_edl(args.edlfile)
+    edl_list = parse_edl(args.edl)
 
     # Create temp directory for split files
     with tempfile.TemporaryDirectory() as tmpdirname:
         logging.debug(f"Created temporary directory '{tmpdirname}'")
 
         # Split video file by edl list
-        split_file_list = split_video(args.video_file, edl_list, tmpdirname, args.vcodec, args.acodec)
+        split_file_list = split_video(args.video, edl_list, tmpdirname, args.vcodec, args.acodec)
 
         # Determine out_file name
         if args.out_file is None:
-            out_file = resolve_out_filename(args.video_file, args.vcodec)
+            out_file = resolve_out_filename(args.video, args.vcodec)
         else:
             out_file = args.out_file
 
