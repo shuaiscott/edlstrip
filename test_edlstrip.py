@@ -3,6 +3,7 @@ import os, subprocess
 from unittest.mock import patch, mock_open
 import edlstrip
 
+
 @pytest.mark.parametrize("seconds, timecode", [
     (3600, '01:00:00.000'),
     ('3600', '01:00:00.000'),
@@ -15,7 +16,6 @@ import edlstrip
 ])
 def test_to_timecode(seconds, timecode):
     assert edlstrip.to_timecode(seconds) == timecode
-
 
 
 @pytest.mark.parametrize("file_data, timecode_tuple_list", [
@@ -31,9 +31,21 @@ def test_parse_edl(file_data, timecode_tuple_list):
         edl_list = edlstrip.parse_edl('mocked params')
         assert edl_list == timecode_tuple_list
 
+
 def test_parse_edl_real():
     edl_list = edlstrip.parse_edl('./test_assets/CreuxDeVan.edl')
     assert edl_list == [('00:00:00.000','00:00:00.750'),('00:00:00.750','00:00:02.000'),('00:00:02.000','00:00:03.000')]
+
+
+@pytest.mark.parametrize("timecode_list, end_timecode, inverted_list", [
+    ([("00:00:01.000", "00:00:02.000")], "00:00:03.000", [("00:00:00.000","00:00:01.000"), ("00:00:02.000","00:00:03.000")]),
+    ([("00:00:00.000", "00:00:02.000")], "00:00:03.000", [("00:00:02.000","00:00:03.000")]),
+    ([], "00:00:03.000", [("00:00:00.000","00:00:03.000")]),
+    ([("00:00:00.000", "00:00:00.000")], "00:00:03.000", [("00:00:00.000","00:00:03.000")]),
+
+])
+def test_invert_edl_list(timecode_list, end_timecode, inverted_list):
+    assert inverted_list == edlstrip.invert_edl_list(timecode_list, end_timecode)
 
 
 @pytest.mark.parametrize("codec, duration", [

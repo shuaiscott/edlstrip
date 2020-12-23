@@ -6,7 +6,7 @@ import click
 ## 
 # Helper functions
 ##
-def parse_args(args):
+def parse_args(input_args):
     """
     Parses commandline arguments and provides help/interface info
 
@@ -59,9 +59,9 @@ def parse_edl(edlfile):
         line = fp.readline()
         cnt = 0
         while line:
-            start, stop, type = line.split()
-            logging.debug(f"Split EDL line to {start}-{stop} with Type: {type}")
-            if type == "3":
+            start, stop, linetype = line.split()
+            logging.debug(f"Split EDL line to {start}-{stop} with LineType: {linetype}")
+            if linetype == "3":
                 tc_start = to_timecode(start)
                 tc_stop = to_timecode(stop)
                 edl_tuple = (tc_start, tc_stop)
@@ -71,6 +71,33 @@ def parse_edl(edlfile):
             cnt += 1
         logging.info(f"Read {cnt} lines from {edlfile}")
     return edl_item_list
+
+
+def get_video_length(input_video):
+    result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    length = float(result.stdout)
+    logging.debug(f"Length of {input_video}: {length}s")
+    return length
+
+
+def invert_edl_list(timecode_list, end_timecode):
+    """
+    Inverts the list of timecodes from the EDL file.
+    Used to determine which splits to make and keep
+    """
+    current_tc = "00:00:00.000"
+    inverted = []
+
+    for start,stop in timecode_list:
+        if start == current_tc:
+            current_tc = stop # Skips ahead if there isn't any good content inbetween timecodes
+        else:
+            inverted.append((current_tc,start))
+            current_tc = stop
+    
+    inverted.append((current_tc, end_timecode))
+
+    return inverted
 
 
 def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'):
@@ -85,7 +112,7 @@ def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'
         logging.debug(f"Creating {split_file} using Start: {start}, Stop: {stop}")
         cmd = f"ffmpeg -y -i '{video_file}' -acodec {acodec} -vcodec {vcodec} -ss {start} -to {stop} -reset_timestamps 1 '{split_file}'"
         logging.debug(f"Running command: {cmd}")
-        subprocess.check_call(['ffmpeg','-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
+        subprocess.check_call(['ffmpeg','-hide_banner','-nostats','-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
         split_list.append(split_file)
         split_cnt+=1
     return split_list
@@ -113,7 +140,7 @@ def join_video(split_list, out_file):
 
     # "ffmpeg -f concat -safe 0 -i '{fp.name}' -c copy '{out_file}'"
     logging.debug(f"Running command ffmpeg concat for {fp.name} to {out_file}")
-    subprocess.check_call(['ffmpeg', '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
+    subprocess.check_call(['ffmpeg', '-hide_banner', '-nostats', '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
     
     # Delete temp file as we're done with it
     os.remove(fp.name)
@@ -148,12 +175,18 @@ if __name__ == '__main__':
     # Parse EDL file
     edl_list = parse_edl(args.edl)
 
+    # Get end timecode of file
+    end_timecode = to_timecode(get_video_length(args.video))
+
+    # Invert edl file 
+    inverted_list = invert_edl_list(edl_list, end_timecode)
+
     # Create temp directory for split files
     with tempfile.TemporaryDirectory() as tmpdirname:
         logging.debug(f"Created temporary directory '{tmpdirname}'")
 
         # Split video file by edl list
-        split_file_list = split_video(args.video, edl_list, tmpdirname, args.vcodec, args.acodec)
+        split_file_list = split_video(args.video, inverted_list, tmpdirname, args.vcodec, args.acodec)
 
         # Determine out_file name
         if args.out_file is None:
