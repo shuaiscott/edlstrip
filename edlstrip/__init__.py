@@ -160,11 +160,10 @@ def resolve_out_filename(input_file_name, vcodec):
 
     return f"{base_name}_comskipped{extension}"
 
-
-##
-# Main Execution
-##
-if __name__ == '__main__':
+def main():
+    """
+    Main Execution
+    """
     # Parse Args
     args = parse_args(sys.argv[1:])
 

@@ -33,7 +33,7 @@ def test_parse_edl(file_data, timecode_tuple_list):
 
 
 def test_parse_edl_real():
-    edl_list = edlstrip.parse_edl('./test_assets/CreuxDeVan.edl')
+    edl_list = edlstrip.parse_edl('./tests/test_assets/CreuxDeVan.edl')
     assert edl_list == [('00:00:00.000','00:00:00.750'),('00:00:00.750','00:00:02.000'),('00:00:02.000','00:00:03.000')]
 
 
@@ -56,7 +56,7 @@ def test_split_video_1s(codec, duration):
     tempdir = './splitfiles/'
     if not os.path.exists(tempdir):
         os.makedirs(tempdir)
-    file_list = edlstrip.split_video('./test_assets/CreuxDeVan.mpg',[('00:00:00.000', '00:00:01.000')], 
+    file_list = edlstrip.split_video('./tests/test_assets/CreuxDeVan.mpg',[('00:00:00.000', '00:00:01.000')], 
                                     tempdir, codec, 'copy')
     assert file_list == [tempdir + 'split1.ts']
 
@@ -73,8 +73,8 @@ def test_split_video_1s(codec, duration):
 
 
 def test_join_video():
-    split_list = ['./test_assets/split1.ts','./test_assets/split2.ts','./test_assets/split3.ts']
-    out_file = './testjoin.mp4'
+    split_list = ['./tests/test_assets/split1.ts','./tests/test_assets/split2.ts','./tests/test_assets/split3.ts']
+    out_file = './tests/testjoin.mp4'
     edlstrip.join_video(split_list, out_file)
     assert os.path.exists(out_file)
 
