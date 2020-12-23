@@ -74,6 +74,9 @@ def parse_edl(edlfile):
 
 
 def get_video_length(input_video):
+    """
+    Extracts the duration/length of the video we're splitting
+    """
     result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     length = float(result.stdout)
     logging.debug(f"Length of {input_video}: {length}s")
