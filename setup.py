@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="edlstrip", # Replace with your own username
-    version="1.0.1",
+    version="1.0.2",
     author="Scott Carlson",
     author_email="shuaiscott@gmail.com",
     description="Strips commercials off Channels DVR recordings using outputted EDL files",
@@ -19,4 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.8',
+    entry_points = {
+        'console_scripts': ['edlstrip=edlstrip:main'],
+    }
 )

@@ -12,7 +12,7 @@ def parse_args(input_args):
 
     Throws error if required file arguments don't exist on filesystem
     """
-    parser = argparse.ArgumentParser(description='Strips commercials off Channels DVR recordings using outputted EDL')
+    parser = argparse.ArgumentParser(prog='edlstrip', description='Strips commercials off Channels DVR recordings using outputted EDL')
     parser.add_argument('video', type=str,
                         help='video file to strip')
     parser.add_argument('edl', type=str,
