@@ -1,19 +1,19 @@
 # 📺 channels-edl-stripper
 Strips commercials off Channels DVR recordings using outputted EDL
 
-# Prerequisites
+## Prerequisites
 - Python 3.8+
 - pip
 - ffmpeg
 
 
-# Getting Started
+## Getting Started
 ```
 pip install -r requirements.txt
 python edlstrip.py movie.mpg movie.epg --vcodec libx264 -o movie_comskipped.mp4
 ```
 
-# Usage
+## Usage
 ```
 usage: edlstrip.py [-h] [--vcodec VCODEC] [--acodec ACODEC] [-o OUT_FILE] [--confirm-copy] video edl
 
@@ -32,11 +32,11 @@ optional arguments:
   --confirm-copy        confirms and disables copy vcodec usage prompt
   ```
 
-# Docker
+## Docker
 
 _Coming Soon_
 
-## docker-compose
+### docker-compose
 ```
 version: 3
 ```
