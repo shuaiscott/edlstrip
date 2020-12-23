@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="edlstrip", # Replace with your own username
-    version="1.0a",
+    version="1.0",
     author="Scott Carlson",
     author_email="shuaiscott@gmail.com",
     description="Strips commercials off Channels DVR recordings using outputted EDL files",
