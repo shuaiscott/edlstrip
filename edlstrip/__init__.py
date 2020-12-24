@@ -37,7 +37,7 @@ def parse_args(input_args):
 
     # Determine out_file name if None
     if args.out_file is None:
-        args.out_file = resolve_out_filename(args.video)
+        args.out_file = os.path.join(os.path.dirname(args.video), resolve_out_filename(args.video))
 
     # Check file existence
     if (not os.path.exists(args.video)):
@@ -177,9 +177,9 @@ def intro_log(args):
     "\n" +
     "          _ _     _        _       \n" + 
     "  ___  __| | |___| |_ _ __(_)_ __  \n" +
-    " / _ \/ _` | / __| __| '__| | '_ \ \n" +
-    "|  __/ (_| | \__ \ |_| |  | | |_) |\n" +
-    " \___|\__,_|_|___/\__|_|  |_| .__/ \n" +
+    " / _ \\/ _` | / __| __| '__| | '_ \\ \n" +
+    "|  __/ (_| | \\__ \\ |_| |  | | |_) |\n" +
+    " \\___|\\__,_|_|___/\\__|_|  |_| .__/ \n" +
     "                            |_|    \n"
     )
     print(f"Video: {args.video}")
