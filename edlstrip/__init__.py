@@ -17,13 +17,13 @@ def parse_args(input_args):
                         help='video file to strip')
     parser.add_argument('edl', type=str, nargs="?",
                         help='EDL file used to control stripping')
-    parser.add_argument('--vcodec', dest='vcodec', default='libx264',
-                        help='the video codec used to trancode (default: libx264)')
+    parser.add_argument('--vcodec', dest='vcodec', default='copy',
+                        help='the video codec used to trancode (default: copy)')
     parser.add_argument('--acodec', dest='acodec', default='copy',
                         help='the audio codec used to trancode (default: copy)')
     parser.add_argument('-o','--outfile', dest='out_file',
                         help='the file to write out to (default: <video>_comskipped.mkv)')
-    parser.add_argument('--confirm-copy', dest='confirm_copy', action='store_true',
+    parser.add_argument('--verbose', '-v', action='count', default=1,
                         help='confirms and disables copy vcodec usage prompt')
     args = parser.parse_args()
 
@@ -31,6 +31,13 @@ def parse_args(input_args):
     if args.edl == None:
         base_name = os.path.splitext(os.path.basename(args.video))[0]
         args.edl = os.path.join(os.path.dirname(args.video), base_name + ".edl")
+
+    # Modify loglevel
+    args.verbose = 30 - (10*args.verbose) if args.verbose > 0 else 0
+
+    # Determine out_file name if None
+    if args.out_file is None:
+        args.out_file = resolve_out_filename(args.video)
 
     # Check file existence
     if (not os.path.exists(args.video)):
@@ -108,7 +115,7 @@ def invert_edl_list(timecode_list, end_timecode):
     return inverted
 
 
-def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'):
+def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy', verbosity=0):
     """
     uses ffmpeg commandline to split the file based on edl tuple (quick method by copying, so will split by i-frames)
     """
@@ -117,10 +124,10 @@ def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'
     for item in edl_list:
         start,stop = item
         split_file = os.path.join(split_dir, f"split{split_cnt}.ts")
-        logging.debug(f"Creating {split_file} using Start: {start}, Stop: {stop}")
-        cmd = f"ffmpeg -y -i '{video_file}' -acodec {acodec} -vcodec {vcodec} -ss {start} -to {stop} -reset_timestamps 1 '{split_file}'"
+        logging.info(f"Splitting using Start: {start}, Stop: {stop} to split{split_cnt}.ts")
+        cmd = f"ffmpeg -hide_banner -loglevel {str(verbosity)} -y -i '{video_file}' -acodec {acodec} -vcodec {vcodec} -ss {start} -to {stop} -reset_timestamps 1 '{split_file}'"
         logging.debug(f"Running command: {cmd}")
-        subprocess.check_call(['ffmpeg','-hide_banner','-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
+        subprocess.check_call(['ffmpeg','-hide_banner','-loglevel',str(verbosity),'-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
         split_list.append(split_file)
         split_cnt+=1
     return split_list
@@ -134,7 +141,7 @@ def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'
     # out.run()
 
 
-def join_video(split_list, out_file):
+def join_video(split_list, out_file, verbosity=0):
     """
     Uses ffmpeg commandline to join the files together (quick method by copying)
     """
@@ -147,8 +154,9 @@ def join_video(split_list, out_file):
     fp.close()
 
     # "ffmpeg -f concat -safe 0 -i '{fp.name}' -c copy '{out_file}'"
-    logging.debug(f"Running command ffmpeg concat for {fp.name} to {out_file}")
-    subprocess.check_call(['ffmpeg', '-hide_banner', '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
+    logging.debug(f"Created temp file: {fp.name}")
+    logging.info(f"Joining {len(split_list)} files to {out_file}")
+    subprocess.check_call(['ffmpeg', '-hide_banner', '-loglevel', str(verbosity), '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
     
     # Delete temp file as we're done with it
     os.remove(fp.name)
@@ -164,6 +172,23 @@ def resolve_out_filename(input_file_name):
 
     return f"{base_name}_comskipped{extension}"
 
+def intro_log(args):
+    print(
+    "\n" +
+    "          _ _     _        _       \n" + 
+    "  ___  __| | |___| |_ _ __(_)_ __  \n" +
+    " / _ \/ _` | / __| __| '__| | '_ \ \n" +
+    "|  __/ (_| | \__ \ |_| |  | | |_) |\n" +
+    " \___|\__,_|_|___/\__|_|  |_| .__/ \n" +
+    "                            |_|    \n"
+    )
+    print(f"Video: {args.video}")
+    print(f"EDL: {args.edl}")
+    print(f"vcodec: {args.vcodec}")
+    print(f"acodec: {args.acodec}")
+    print(f"Output: {args.out_file}\n")
+
+
 def main():
     """
     Main Execution
@@ -172,11 +197,14 @@ def main():
     args = parse_args(sys.argv[1:])
 
     # Setup Logger
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=args.verbose, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # TODO Check if codec is copy, then write message that cuts won't be precise if input file has I-frames
-    if 'copy' in args.vcodec and not args.confirm_copy:
-        click.confirm('WARNING!!! Copy vcodec was selected. This provides a faster split, but is not as accurate. (You can disable this prompt with --confirm-copy)\nDo you want to continue?', abort=True)
+    # Log arguments/work to be done
+    intro_log(args)
+
+    #  Check if codec is copy, then write message that cuts won't be precise if input file has I-frames
+    if 'copy' in args.vcodec:
+        logging.warning('Copy vcodec was selected. This provides a faster split, but is not as accurate.')
 
     # Parse EDL file
     edl_list = parse_edl(args.edl)
@@ -194,14 +222,8 @@ def main():
         # Split video file by edl list
         split_file_list = split_video(args.video, inverted_list, tmpdirname, args.vcodec, args.acodec)
 
-        # Determine out_file name
-        if args.out_file is None:
-            out_file = resolve_out_filename(args.video, args.vcodec)
-        else:
-            out_file = args.out_file
-
         # Join split videos together again
-        join_video(split_file_list, out_file)
+        join_video(split_file_list, args.out_file)
 
 
 
