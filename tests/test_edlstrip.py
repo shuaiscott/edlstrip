@@ -88,12 +88,12 @@ def test_join_video():
     os.remove(out_file)
 
 
-@pytest.mark.parametrize("filename, vcodec, out_filename", [
-    ('vid.mp4', 'libx264', 'vid_comskipped.mkv'),
-    ('vid.asdf', 'asdf', 'vid_comskipped.mkv'), # Let's make ffmpeg worry about codec and shove into MKV container
-    ('stuff.mp4', 'copy', 'stuff_comskipped.mp4'),
-    ('vid.avi', 'libx264', 'vid_comskipped.mkv'),
-    ('episode.mpg', 'copy', 'episode_comskipped.mpg'),
+@pytest.mark.parametrize("filename, out_filename", [
+    ('vid.mp4', 'vid_comskipped.mkv'),
+    ('vid.asdf', 'vid_comskipped.mkv'), # Let's make ffmpeg worry about codecs and shove into MKV container
+    ('stuff.mp4', 'stuff_comskipped.mkv'),
+    ('vid.avi', 'vid_comskipped.mkv'),
+    ('episode.mpg', 'episode_comskipped.mkv'),
 ])
-def test_resolve_out_filename(filename, vcodec, out_filename):
-    assert out_filename == edlstrip.resolve_out_filename(filename, vcodec)
+def test_resolve_out_filename(filename, out_filename):
+    assert out_filename == edlstrip.resolve_out_filename(filename)

@@ -4,9 +4,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="edlstrip", # Replace with your own username
+    name="edlstrip",
     version="1.0.2",
-    author="Scott Carlson",
+    author="Scott C.",
     author_email="shuaiscott@gmail.com",
     description="Strips commercials off Channels DVR recordings using outputted EDL files",
     long_description=long_description,

@@ -115,7 +115,7 @@ def split_video(video_file, edl_list, split_dir, vcodec='libx264', acodec='copy'
         logging.debug(f"Creating {split_file} using Start: {start}, Stop: {stop}")
         cmd = f"ffmpeg -y -i '{video_file}' -acodec {acodec} -vcodec {vcodec} -ss {start} -to {stop} -reset_timestamps 1 '{split_file}'"
         logging.debug(f"Running command: {cmd}")
-        subprocess.check_call(['ffmpeg','-hide_banner','-nostats','-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
+        subprocess.check_call(['ffmpeg','-hide_banner','-y','-i',video_file,'-acodec',acodec,'-vcodec',vcodec,'-ss',start,'-to',stop,'-reset_timestamps','1',split_file])
         split_list.append(split_file)
         split_cnt+=1
     return split_list
@@ -143,20 +143,19 @@ def join_video(split_list, out_file):
 
     # "ffmpeg -f concat -safe 0 -i '{fp.name}' -c copy '{out_file}'"
     logging.debug(f"Running command ffmpeg concat for {fp.name} to {out_file}")
-    subprocess.check_call(['ffmpeg', '-hide_banner', '-nostats', '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
+    subprocess.check_call(['ffmpeg', '-hide_banner', '-f', 'concat', '-safe', '0', '-i', fp.name, '-c', 'copy', out_file])
     
     # Delete temp file as we're done with it
     os.remove(fp.name)
 
     
-def resolve_out_filename(input_file_name, vcodec):
+def resolve_out_filename(input_file_name):
     """
     Resolves the appropriate output file name based on video input name
     """
-    base_name, extension = os.path.splitext(os.path.basename(input_file_name))
-
-    if 'copy' not in vcodec:
-        extension = '.mkv'
+    base_name = os.path.splitext(os.path.basename(input_file_name))[0]
+    
+    extension = '.mkv'
 
     return f"{base_name}_comskipped{extension}"
 
