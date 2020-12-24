@@ -1,7 +1,7 @@
 import os, sys, subprocess, logging
 import argparse
 import tempfile
-import click
+from shutil import which
 
 ## 
 # Helper functions
@@ -193,6 +193,11 @@ def main():
     """
     Main Execution
     """
+    # Check if ffmpeg exists in commandline path
+    if which("ffmpeg") is None:
+        logging.critical(f"ffmpeg was not found on the path of this system! Please install it and try again later.")
+        exit() 
+
     # Parse Args
     args = parse_args(sys.argv[1:])
 
