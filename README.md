@@ -9,13 +9,13 @@ Strips commercials off Channels DVR recordings using outputted EDL
 
 ## Getting Started
 ```
-pip install -r requirements.txt
-python edlstrip.py movie.mpg movie.epg --vcodec libx264 -o movie_comskipped.mp4
+sudo pip3 install edlstrip
+edlstrip movie.mpg
 ```
 
 ## Usage
 ```
-usage: edlstrip.py [-h] [--vcodec VCODEC] [--acodec ACODEC] [-o OUT_FILE] [--confirm-copy] video edl
+usage: edlstrip [-h] [--vcodec VCODEC] [--acodec ACODEC] [-o OUT_FILE] [--verbose] video [edl]
 
 Strips commercials off Channels DVR recordings using outputted EDL
 
@@ -25,11 +25,11 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --vcodec VCODEC       the video codec used to trancode (default: libx264)
+  --vcodec VCODEC       the video codec used to trancode (default: copy)
   --acodec ACODEC       the audio codec used to trancode (default: copy)
   -o OUT_FILE, --outfile OUT_FILE
                         the file to write out to (default: <video>_comskipped.mkv)
-  --confirm-copy        confirms and disables copy vcodec usage prompt
+  --verbose, -v         confirms and disables copy vcodec usage prompt
   ```
 
 ## Docker
