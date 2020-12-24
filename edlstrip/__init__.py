@@ -15,7 +15,7 @@ def parse_args(input_args):
     parser = argparse.ArgumentParser(prog='edlstrip', description='Strips commercials off Channels DVR recordings using outputted EDL')
     parser.add_argument('video', type=str,
                         help='video file to strip')
-    parser.add_argument('edl', type=str,
+    parser.add_argument('edl', type=str, nargs="?",
                         help='EDL file used to control stripping')
     parser.add_argument('--vcodec', dest='vcodec', default='libx264',
                         help='the video codec used to trancode (default: libx264)')
@@ -26,6 +26,11 @@ def parse_args(input_args):
     parser.add_argument('--confirm-copy', dest='confirm_copy', action='store_true',
                         help='confirms and disables copy vcodec usage prompt')
     args = parser.parse_args()
+
+    # set args.edl to same as video, with the extension swapped
+    if args.edl == None:
+        base_name = os.path.splitext(os.path.basename(args.video))[0]
+        args.edl = os.path.join(os.path.dirname(args.video), base_name + ".edl")
 
     # Check file existence
     if (not os.path.exists(args.video)):
